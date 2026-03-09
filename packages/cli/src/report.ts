@@ -1,0 +1,178 @@
+/**
+ * Report generator — exports metrics as JSON, Markdown, or GitHub PR comment.
+ *
+ * Usage:
+ *   dev-inspect report                — markdown to stdout
+ *   dev-inspect report --format json  — JSON to stdout
+ *   dev-inspect report --format md    — markdown to stdout
+ *   dev-inspect report --output report.md — write to file
+ */
+
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+import type { Metrics } from './collector/types.js'
+
+interface ReportOptions {
+  format: 'json' | 'md'
+  output?: string
+}
+
+function statusIcon(status: string): string {
+  if (status === 'pass') return '✅'
+  if (status === 'fail') return '❌'
+  return '⏭️'
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
+}
+
+function generateMarkdown(metrics: Metrics): string {
+  const lines: string[] = []
+
+  lines.push(`# Dev Inspect Report`)
+  lines.push('')
+  lines.push(`**Project:** ${metrics.project}`)
+  lines.push(`**Branch:** ${metrics.git.branch}`)
+  lines.push(`**Generated:** ${new Date(metrics.timestamp).toLocaleString()}`)
+  lines.push('')
+
+  // Quality checks table
+  lines.push('## Quality Checks')
+  lines.push('')
+  lines.push('| Check | Status | Duration |')
+  lines.push('|-------|--------|----------|')
+
+  const checks = [
+    ['Lint', metrics.lint],
+    ['TypeScript', metrics.typecheck],
+    ['Tests', metrics.tests],
+    ['Build', metrics.build],
+  ] as const
+
+  for (const [name, result] of checks) {
+    const status = statusIcon(result.status)
+    const detail = name === 'Tests' && metrics.tests.total
+      ? ` (${metrics.tests.passed}/${metrics.tests.total})`
+      : ''
+    lines.push(`| ${name} | ${status} ${result.status}${detail} | ${result.duration_ms}ms |`)
+  }
+  lines.push('')
+
+  // Coverage
+  if (metrics.coverage?.summary) {
+    const s = metrics.coverage.summary
+    lines.push('## Coverage')
+    lines.push('')
+    lines.push('| Metric | Coverage |')
+    lines.push('|--------|----------|')
+    lines.push(`| Lines | ${s.lines.pct}% |`)
+    lines.push(`| Branches | ${s.branches.pct}% |`)
+    lines.push(`| Functions | ${s.functions.pct}% |`)
+    lines.push(`| Statements | ${s.statements.pct}% |`)
+    lines.push('')
+  }
+
+  // Code health
+  lines.push('## Code Health')
+  lines.push('')
+
+  if (metrics.bundlesize?.totalBytes != null) {
+    lines.push(`- **Bundle Size:** ${formatBytes(metrics.bundlesize.totalBytes)}`)
+    if (metrics.bundlesize.jsBytes) lines.push(`  - JS: ${formatBytes(metrics.bundlesize.jsBytes)}`)
+    if (metrics.bundlesize.cssBytes) lines.push(`  - CSS: ${formatBytes(metrics.bundlesize.cssBytes)}`)
+  }
+
+  if (metrics.complexity?.totalLines != null) {
+    lines.push(`- **Complexity:** ${metrics.complexity.totalLines.toLocaleString()} lines across ${metrics.complexity.totalFiles} files`)
+  }
+
+  if (metrics.typecoverage?.percentage != null) {
+    lines.push(`- **Type Coverage:** ${metrics.typecoverage.percentage}%`)
+  }
+
+  if (metrics.todos?.total != null) {
+    lines.push(`- **TODOs:** ${metrics.todos.total}`)
+  }
+  lines.push('')
+
+  // Security
+  const hasSecurityData = metrics.secrets?.findings != null || metrics.licenses?.risk?.length || metrics.envcheck?.missing?.length
+  if (hasSecurityData) {
+    lines.push('## Security & Compliance')
+    lines.push('')
+
+    if (metrics.secrets?.findings != null) {
+      const icon = metrics.secrets.findings > 0 ? '⚠️' : '✅'
+      lines.push(`- ${icon} **Secrets:** ${metrics.secrets.findings} finding(s)`)
+    }
+
+    if (metrics.licenses?.risk?.length) {
+      const high = metrics.licenses.risk.filter(r => r.level === 'high').length
+      const med = metrics.licenses.risk.filter(r => r.level === 'medium').length
+      lines.push(`- **License Risks:** ${high} high, ${med} medium`)
+    }
+
+    if (metrics.envcheck?.missing?.length) {
+      lines.push(`- ⚠️ **Missing Env Vars:** ${metrics.envcheck.missing.join(', ')}`)
+    }
+    lines.push('')
+  }
+
+  // Dependencies
+  lines.push('## Dependencies')
+  lines.push('')
+  lines.push(`- **Outdated:** ${metrics.dependencies.outdated}`)
+  lines.push(`- **Vulnerabilities:** ${metrics.dependencies.vulnerabilities}`)
+  if (metrics.duplicates?.count) {
+    lines.push(`- **Duplicates:** ${metrics.duplicates.count} packages`)
+  }
+  lines.push('')
+
+  // Git
+  lines.push('## Git')
+  lines.push('')
+  lines.push(`- **Uncommitted files:** ${metrics.git.uncommitted_files}`)
+  lines.push(`- **Changes:** +${metrics.git.insertions} / -${metrics.git.deletions}`)
+  if (metrics.git.recent_commits.length > 0) {
+    lines.push(`- **Recent commits:**`)
+    for (const c of metrics.git.recent_commits.slice(0, 5)) {
+      lines.push(`  - ${c}`)
+    }
+  }
+  lines.push('')
+
+  lines.push('---')
+  lines.push('*Generated by [dev-inspect](https://github.com/cielo-dev/dev-inspect)*')
+
+  return lines.join('\n')
+}
+
+export async function runReport(options: ReportOptions): Promise<void> {
+  const ROOT = process.env.DEV_INSPECT_ROOT ?? process.cwd()
+  const metricsFile = resolve(ROOT, '.dev-metrics/metrics.json')
+
+  if (!existsSync(metricsFile)) {
+    console.error('No metrics found. Run `dev-inspect collect` first.')
+    process.exit(1)
+  }
+
+  const metrics: Metrics = JSON.parse(readFileSync(metricsFile, 'utf-8'))
+
+  let output: string
+  if (options.format === 'json') {
+    output = JSON.stringify(metrics, null, 2)
+  } else {
+    output = generateMarkdown(metrics)
+  }
+
+  if (options.output) {
+    const outPath = resolve(ROOT, options.output)
+    writeFileSync(outPath, output)
+    console.log(`Report written to ${outPath}`)
+  } else {
+    console.log(output)
+  }
+}

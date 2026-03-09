@@ -1,0 +1,26 @@
+{
+  "name": "dev-inspect-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @dev-inspect/cli dev",
+    "init": "pnpm --filter @dev-inspect/cli init",
+    "collect": "pnpm --filter @dev-inspect/cli collect",
+    "collect:quick": "pnpm --filter @dev-inspect/cli collect:quick",
+    "check": "pnpm --filter @dev-inspect/cli check-ci",
+    "report": "pnpm --filter @dev-inspect/cli report",
+    "mcp": "pnpm --filter @dev-inspect/cli mcp",
+    "build": "pnpm -r build",
+    "build:dashboard": "pnpm --filter @dev-inspect/dashboard build",
+    "build:inspector": "pnpm --filter @dev-inspect/inspector build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

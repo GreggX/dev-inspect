@@ -1,0 +1,25 @@
+{
+  "name": "@dev-inspect/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "dev-inspect": "./src/cli.ts"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "init": "tsx src/cli.ts init",
+    "collect": "tsx src/cli.ts collect",
+    "collect:quick": "tsx src/cli.ts collect lint typecheck",
+    "check-ci": "tsx src/cli.ts ci",
+    "report": "tsx src/cli.ts report",
+    "mcp": "tsx src/cli.ts mcp"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@dev-inspect/dashboard": "workspace:*",
+    "@dev-inspect/inspector": "workspace:*",
+    "tsx": "^4.20.6",
+    "zod": "^3.24.0"
+  }
+}
