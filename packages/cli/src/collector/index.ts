@@ -23,6 +23,7 @@ import { collectLicenses } from './checks/licenses.js'
 import { collectComplexity } from './checks/complexity.js'
 import { collectSecrets } from './checks/secrets.js'
 import { collectTypeCoverage } from './checks/typecoverage.js'
+import { collectTestQuality } from './checks/testquality.js'
 
 export async function runCollector(checks: string[]): Promise<Metrics> {
   const ROOT = process.env.DEV_INSPECT_ROOT ?? process.cwd()
@@ -76,6 +77,7 @@ export async function runCollector(checks: string[]): Promise<Metrics> {
     complexity: shouldRun('complexity') ? collectComplexity(ROOT, getCheckCommand(config, 'complexity')) : (existing.complexity ?? skipped),
     secrets: shouldRun('secrets') ? collectSecrets(ROOT, getCheckCommand(config, 'secrets')) : (existing.secrets ?? skipped),
     typecoverage: shouldRun('typecoverage') ? collectTypeCoverage(ROOT, getCheckCommand(config, 'typecoverage')) : (existing.typecoverage ?? skipped),
+    testquality: shouldRun('testquality') ? collectTestQuality(ROOT, getCheckCommand(config, 'testquality')) : (existing.testquality ?? skipped),
   }
 
   writeFileSync(METRICS_FILE, JSON.stringify(metrics, null, 2))
@@ -101,6 +103,7 @@ export async function runCollector(checks: string[]): Promise<Metrics> {
   console.log(`Complexity: ${metrics.complexity.status} — ${metrics.complexity.totalLines ?? '?'} lines (${metrics.complexity.duration_ms}ms)`)
   console.log(`Secrets:    ${metrics.secrets.status} — ${metrics.secrets.findings ?? 0} findings (${metrics.secrets.duration_ms}ms)`)
   console.log(`TypeCov:    ${metrics.typecoverage.status} — ${metrics.typecoverage.percentage ?? '?'}% (${metrics.typecoverage.duration_ms}ms)`)
+  console.log(`TestQual:   ${metrics.testquality.status} — ${metrics.testquality.totalTests ?? '?'} tests, avg ${metrics.testquality.avgScore ?? '?'}/100 (${metrics.testquality.duration_ms}ms)`)
 
   return metrics
 }

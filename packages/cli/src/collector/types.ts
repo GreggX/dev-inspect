@@ -76,6 +76,36 @@ export interface TypeCoverageResult extends MetricResult {
   percentage?: number
 }
 
+export interface TestQualityResult extends MetricResult {
+  totalFiles?: number
+  totalTests?: number
+  avgScore?: number
+  weakTests?: number
+  strongTests?: number
+  gradeDistribution?: { A: number; B: number; C: number; D: number; F: number }
+  files?: {
+    filePath: string
+    directory: string
+    totalTests: number
+    qualityScore: number
+    grade: 'A' | 'B' | 'C' | 'D' | 'F'
+    weakTests: number
+    strongTests: number
+    linesOfCode: number
+    tests: {
+      name: string
+      line: number
+      qualityScore: number
+      grade: 'A' | 'B' | 'C' | 'D' | 'F'
+      assertions: number
+      mocks: number
+      linesOfCode: number
+      smells: { type: string; severity: 'error' | 'warning' | 'info'; message: string }[]
+    }[]
+  }[]
+  smellSummary?: Record<string, number>
+}
+
 export interface Metrics {
   timestamp: string
   project: string
@@ -94,4 +124,5 @@ export interface Metrics {
   complexity: ComplexityResult
   secrets: SecretsResult
   typecoverage: TypeCoverageResult
+  testquality: TestQualityResult
 }

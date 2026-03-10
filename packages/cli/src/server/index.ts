@@ -16,6 +16,7 @@ import { handleComponents } from './routes/components.js'
 import { handleScreenshots } from './routes/screenshots.js'
 import { handleClaude } from './routes/claude.js'
 import { handleHistory } from './routes/history.js'
+import { handleTestQuality } from './routes/testquality.js'
 
 const require = createRequire(import.meta.url)
 
@@ -110,6 +111,7 @@ export function startServer(): void {
     if (handleScreenshots(req, res, url, ctx)) return
     if (handleClaude(req, res, url, ctx)) return
     if (handleHistory(req, res, url, ctx)) return
+    if (handleTestQuality(req, res, url, ctx)) return
 
     // --- App Proxy (routes under /app/*) ---
     if (url.pathname.startsWith('/app')) {

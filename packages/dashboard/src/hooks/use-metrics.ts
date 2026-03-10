@@ -100,6 +100,14 @@ export interface Metrics {
   complexity?: ComplexityResult
   secrets?: SecretsResult
   typecoverage?: TypeCoverageResult
+  testquality?: {
+    status: string
+    duration_ms: number
+    totalTests?: number
+    avgScore?: number
+    weakTests?: number
+    strongTests?: number
+  }
 }
 
 export function useMetrics(): Signal<Metrics | null> {

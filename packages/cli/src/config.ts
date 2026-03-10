@@ -34,11 +34,12 @@ export interface DevInspectConfig {
     complexity?: CheckConfig
     secrets?: CheckConfig
     typecoverage?: CheckConfig
+    testquality?: CheckConfig
   }
   thresholds?: ThresholdsConfig
 }
 
-export const CHECK_NAMES = ['lint', 'typecheck', 'tests', 'coverage', 'build', 'bundlesize', 'todos', 'duplicates', 'envcheck', 'licenses', 'complexity', 'secrets', 'typecoverage'] as const
+export const CHECK_NAMES = ['lint', 'typecheck', 'tests', 'coverage', 'build', 'bundlesize', 'todos', 'duplicates', 'envcheck', 'licenses', 'complexity', 'secrets', 'typecoverage', 'testquality'] as const
 export type CheckName = (typeof CHECK_NAMES)[number]
 
 export const DEFAULT_COMMANDS: Record<CheckName, string> = {
@@ -55,6 +56,7 @@ export const DEFAULT_COMMANDS: Record<CheckName, string> = {
   complexity: 'internal',
   secrets: 'internal',
   typecoverage: 'internal',
+  testquality: 'internal',
 }
 
 const CONFIG_FILENAME = '.dev-inspect.json'

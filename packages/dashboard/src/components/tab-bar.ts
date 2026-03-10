@@ -1,7 +1,7 @@
 import { h } from '../core/dom.js'
 import { signal, type Signal } from '../core/state.js'
 
-export type TabId = 'metrics' | 'ui-health' | 'trends' | 'settings'
+export type TabId = 'metrics' | 'ui-health' | 'trends' | 'test-quality' | 'settings'
 
 export interface TabBarResult {
   element: HTMLElement

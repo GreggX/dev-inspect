@@ -5,6 +5,7 @@ import { MetricsTab } from './tabs/metrics.js'
 import { UIHealthTab } from './tabs/ui-health.js'
 import { TrendsTab } from './tabs/trends.js'
 import { SettingsTab } from './tabs/settings.js'
+import { TestQualityTab } from './tabs/test-quality.js'
 import { useMetrics } from './hooks/use-metrics.js'
 
 export function App(): HTMLElement {
@@ -12,17 +13,20 @@ export function App(): HTMLElement {
 
   const uiHealth = UIHealthTab()
   const trends = TrendsTab()
+  const testQuality = TestQualityTab()
   const settings = SettingsTab()
 
   const metricsTab = MetricsTab(metrics)
   const uiHealthTab = uiHealth.element
   const trendsTab = trends.element
+  const testQualityTab = testQuality.element
   const settingsTab = settings.element
 
   const tabContents: Record<TabId, HTMLElement> = {
     'metrics': metricsTab,
     'ui-health': uiHealthTab,
     'trends': trendsTab,
+    'test-quality': testQualityTab,
     'settings': settingsTab,
   }
 
@@ -31,6 +35,7 @@ export function App(): HTMLElement {
       { id: 'metrics', label: 'Metrics' },
       { id: 'ui-health', label: 'UI Health' },
       { id: 'trends', label: 'Trends' },
+      { id: 'test-quality', label: 'Test Quality' },
       { id: 'settings', label: 'Settings' },
     ],
     (tab: TabId) => {
@@ -54,6 +59,10 @@ export function App(): HTMLElement {
         trends.activate()
       }
 
+      if (tab === 'test-quality') {
+        testQuality.activate()
+      }
+
       if (tab === 'settings') {
         settings.activate()
       }
@@ -66,6 +75,7 @@ export function App(): HTMLElement {
     metricsTab,
     uiHealthTab,
     trendsTab,
+    testQualityTab,
     settingsTab,
   )
 }
