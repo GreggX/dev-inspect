@@ -42,11 +42,11 @@ Entry point: `src/cli.ts` — parses `--root <path>` flag, dispatches to subcomm
   - `index.ts` — route dispatcher, static file serving from `@dev-inspect/dashboard/dist/`, CORS, request logging
   - `helpers.ts` — `ServerContext` interface, `readJSON`, `readBody`, `setCorsHeaders`
   - `proxy.ts` — proxies `/app/*` to target app, injects inspector script into HTML responses
-  - `routes/` — one file per API domain: `metrics.ts`, `annotations.ts`, `config.ts`, `components.ts`, `screenshots.ts`, `claude.ts`, `history.ts`
+  - `routes/` — one file per API domain: `metrics.ts`, `annotations.ts`, `config.ts`, `components.ts`, `screenshots.ts`, `claude.ts`, `history.ts`, `testquality.ts`
 - **`src/collector/`** — Metrics collection:
   - `types.ts` — `MetricResult`, `Metrics`, `GitStats`, `CoverageSummary` interfaces
   - `runner.ts` — `run()` helper wrapping `execSync` with timeout
-  - `checks/` — one file per check: `git.ts`, `lint.ts`, `typecheck.ts`, `tests.ts`, `coverage.ts`, `build.ts`, `deps.ts`, `bundlesize.ts`, `todos.ts`, `duplicates.ts`, `envcheck.ts`, `licenses.ts`, `complexity.ts`, `secrets.ts`, `typecoverage.ts`
+  - `checks/` — one file per check: `git.ts`, `lint.ts`, `typecheck.ts`, `tests.ts`, `coverage.ts`, `build.ts`, `deps.ts`, `bundlesize.ts`, `todos.ts`, `duplicates.ts`, `envcheck.ts`, `licenses.ts`, `complexity.ts`, `secrets.ts`, `typecoverage.ts`, `testquality.ts`
   - `history.ts` — appends summarized metrics to `history.json` (max 100 entries)
   - `index.ts` — orchestrator, calls checks based on config, writes `.dev-metrics/metrics.json`, appends history
 - **`src/ci.ts`** — CI mode: runs all checks, evaluates thresholds from config, exits non-zero on failure
@@ -66,8 +66,8 @@ Vite + vanilla TypeScript with a custom reactive component system. **No framewor
   - `dom.ts` — `h()` element creator (handles events, styles, datasets, reactive children), `text()`, `show()`, `list()`, `mount()`
   - `styles.ts` — `css` tagged template for scoped styles, `injectStyles()` for deduped `<style>` injection
 - **`src/components/`** — reusable: `header.ts`, `tab-bar.ts`, `status-card.ts`, `coverage-ring.ts`, `git-info.ts`, `error-output.ts`
-- **`src/tabs/`** — `metrics.ts`, `ui-health.ts`, `trends.ts`, `settings.ts`
-- **`src/hooks/`** — `use-metrics.ts` (SSE), `use-config.ts`, `use-annotations.ts`, `use-history.ts`
+- **`src/tabs/`** — `metrics.ts`, `ui-health.ts`, `trends.ts`, `test-quality.ts`, `settings.ts`
+- **`src/hooks/`** — `use-metrics.ts` (SSE), `use-config.ts`, `use-annotations.ts`, `use-history.ts`, `use-testquality.ts`
 - **`src/styles/`** — `theme.css` (CSS variables), `base.css` (global styles)
 
 Build: `pnpm build:dashboard` → `packages/dashboard/dist/` (static HTML/CSS/JS). The CLI server serves these files.
